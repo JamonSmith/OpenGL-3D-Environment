@@ -3,8 +3,13 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <cmath>
+#include <vector>
+
+#include "AABB.h"
 
 #define pi 2.0 * acos(0.0)
+
+using namespace std;
 
 class Camera
 {
@@ -14,6 +19,9 @@ private:
 	double camerax;
 	double cameraspeed;
 
+	double cameray;
+	double verticalvelocity;
+
 	double camerayaw;
 
 	double camerarotationspeed;
@@ -21,9 +29,16 @@ private:
 
 public:
 
-	Camera(double x, double z, double speed, double yaw, double rotspeed);
+	Camera(double x, double y, double z, double speed, double yaw, double rotspeed);
 
-	void movement(GLFWwindow* window, double deltaTime);
+	void movement(GLFWwindow* window, double deltaTime, const vector<AABB>& obstacles);
 	void applyView();
 	void boundsCheck(double xbound, double zbound);
+	AABB getBounds() const;
+
+	void setPos(double x, double z);
+	Vector2 getPos() const;
+
+	void jump(GLFWwindow* window);
+	void applyGravity(double deltaTime);
 };

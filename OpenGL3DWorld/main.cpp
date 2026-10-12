@@ -1,4 +1,7 @@
 #include <iostream>
+#include <vector>
+
+#include "AABB.h"
 
 #include "Camera.h"
 #include "Player.h"
@@ -166,14 +169,35 @@ int main()
 
 	double mapWidth = 100.0;
 
-	Camera camera(0.0, 0.0, 20.0, 0.0, 90);
+	Camera camera(0.0, 20.0, 20.0, 20.0, 0.0, 90);
 
-	Player player(0.0, 0.0, 0.1, 10.0);
+	//Player player(0.0, 0.0, 0.1, 10.0);
 
     double vertPos = 0.0;
 
     double angle = 30.0;
     double lastFrame = glfwGetTime();
+
+    AABB cubeBounds
+    {
+        {-5.0, -35.0},
+        {5.0, -25.0}
+    };
+
+    vector<AABB> obstacles =
+    {
+        cubeBounds,
+        {
+            {15.0, -45.0},
+            {25.0, -35.0}
+        },
+        {
+            {-25.0, -55.0},
+            {-15.0, -45.0}
+        }
+    };
+
+    int tmpct = 0;
 
     // Render loop
     while (!glfwWindowShouldClose(window))
@@ -191,8 +215,13 @@ int main()
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
-		camera.movement(window, deltaTime);
+
+        Vector2 currPos = camera.getPos();
+
+		camera.movement(window, deltaTime, obstacles);
         camera.boundsCheck(mapWidth, mapWidth);
+		camera.jump(window);
+		camera.applyGravity(deltaTime);
 		camera.applyView();
         
         glColor3f(1.0, 0.0, 1.0);
@@ -250,12 +279,25 @@ int main()
         glVertex3f(mapWidth, -10.0, mapWidth);
         glEnd();
 
-        glPushMatrix();
-
         double rotSpeed = 45.0;
 
-        glTranslatef(0.0, vertPos, -30.0);
+        glPushMatrix();
 
+        glTranslatef(0.0, vertPos, -30.0);
+        drawCube(0.0, 0.0, 0.0, 10.0, angle);
+
+        glPopMatrix();
+
+        glPushMatrix();
+
+        glTranslatef(20.0, vertPos, -40.0);
+        drawCube(0.0, 0.0, 0.0, 10.0, angle);
+
+        glPopMatrix();
+
+        glPushMatrix();
+
+        glTranslatef(-20.0, vertPos, -50.0);
         drawCube(0.0, 0.0, 0.0, 10.0, angle);
 
         glPopMatrix();
@@ -264,7 +306,7 @@ int main()
         glLoadIdentity();
 
         angle += rotSpeed * deltaTime;
-        vertPos = 3 * sin((pi / 2) * glfwGetTime()) + 1.0;
+        vertPos = 2 * sin((pi / 2) * glfwGetTime()) + 1.0;
 
         glfwSwapBuffers(window);
         glfwPollEvents();
