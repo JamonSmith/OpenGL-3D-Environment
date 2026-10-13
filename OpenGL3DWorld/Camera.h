@@ -23,13 +23,14 @@ private:
 	double verticalvelocity;
 
 	double camerayaw;
+	double camerapitch;
 
 	double camerarotationspeed;
 
 
 public:
 
-	Camera(double x, double y, double z, double speed, double yaw, double rotspeed);
+	Camera(double x, double y, double z, double speed, double yaw, double pitch, double rotspeed);
 
 	void movement(GLFWwindow* window, double deltaTime, const vector<AABB>& obstacles);
 	void applyView();

@@ -169,7 +169,7 @@ int main()
 
 	double mapWidth = 100.0;
 
-	Camera camera(0.0, 20.0, 20.0, 20.0, 0.0, 90);
+	Camera camera(0.0, 20.0, 20.0, 20.0, 0.0, 0.0, 90.0);
 
 	//Player player(0.0, 0.0, 0.1, 10.0);
 

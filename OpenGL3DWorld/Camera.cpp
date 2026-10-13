@@ -1,7 +1,7 @@
 #include "Camera.h"
 #include "Vector2.h"
 
-Camera::Camera(double x, double y, double z, double speed, double yaw, double rotspeed)
+Camera::Camera(double x, double y, double z, double speed, double yaw, double pitch, double rotspeed)
 {
 	camerax = x;
 	cameray = y;
@@ -9,6 +9,7 @@ Camera::Camera(double x, double y, double z, double speed, double yaw, double ro
 	cameraspeed = speed;
 	verticalvelocity = 0.0;
 	camerayaw = yaw;
+	camerapitch = pitch;
 	camerarotationspeed = rotspeed;
 }
 
@@ -22,6 +23,26 @@ void Camera::movement(GLFWwindow* window, double deltaTime, const vector<AABB>& 
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 	{
 		camerayaw += camerarotationspeed * deltaTime;
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	{
+		camerapitch -= camerarotationspeed * deltaTime;
+
+		if (camerapitch <= -90.0)
+		{
+			camerapitch = -90.0;
+		}
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	{
+		camerapitch += camerarotationspeed * deltaTime;
+
+		if (camerapitch >= 60.0)
+		{
+			camerapitch = 60.0;
+		}
 	}
 
 	double forwardx = sin(camerayaw * (pi / 180.0));
@@ -91,6 +112,7 @@ void Camera::applyView()
 
 	//cameray = 5.0;
 	
+	glRotatef(camerapitch, 1.0, 0.0, 0.0);
 	glRotatef(camerayaw, 0.0, 1.0, 0.0);
 	glTranslatef(-camerax, -cameray, -cameraz);
 }
