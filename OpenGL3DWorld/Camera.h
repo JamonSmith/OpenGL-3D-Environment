@@ -40,6 +40,6 @@ public:
 	void setPos(double x, double z);
 	Vector2 getPos() const;
 
-	void jump(GLFWwindow* window);
-	void applyGravity(double deltaTime);
+	void jump(GLFWwindow* window, const vector<AABB>& obstacles, double jumppower);
+	void applyGravity(double deltaTime, const vector<AABB>& obstacles);
 };

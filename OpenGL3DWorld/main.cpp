@@ -180,20 +180,20 @@ int main()
 
     AABB cubeBounds
     {
-        {-5.0, -35.0},
-        {5.0, -25.0}
+        {-5.0,-15.0, -35.0},
+        {5.0, 8.0, -25.0}
     };
 
     vector<AABB> obstacles =
     {
         cubeBounds,
         {
-            {15.0, -45.0},
-            {25.0, -35.0}
+            {15.0, -15.0, -45.0},
+            {25.0, 8.0, -35.0}
         },
         {
-            {-25.0, -55.0},
-            {-15.0, -45.0}
+            {-25.0, -15.0, -55.0},
+            {-15.0, 8.0, -45.0}
         }
     };
 
@@ -220,8 +220,8 @@ int main()
 
 		camera.movement(window, deltaTime, obstacles);
         camera.boundsCheck(mapWidth, mapWidth);
-		camera.jump(window);
-		camera.applyGravity(deltaTime);
+		camera.jump(window, obstacles, 25.0);
+		camera.applyGravity(deltaTime, obstacles);
 		camera.applyView();
         
         glColor3f(1.0, 0.0, 1.0);
@@ -291,14 +291,14 @@ int main()
         glPushMatrix();
 
         glTranslatef(20.0, vertPos, -40.0);
-        drawCube(0.0, 0.0, 0.0, 10.0, angle);
+        drawCube(0.0, 0.0, 0.0, 10.0, 0.0);
 
         glPopMatrix();
 
         glPushMatrix();
 
         glTranslatef(-20.0, vertPos, -50.0);
-        drawCube(0.0, 0.0, 0.0, 10.0, angle);
+        drawCube(0.0, 0.0, 0.0, 10.0, 0.0);
 
         glPopMatrix();
 

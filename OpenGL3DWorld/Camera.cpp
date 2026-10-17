@@ -1,17 +1,10 @@
 #include "Camera.h"
-#include "Vector2.h"
+#include "Vector3.h"
 
-Camera::Camera(double x, double y, double z, double speed, double yaw, double pitch, double rotspeed)
-{
-	camerax = x;
-	cameray = y;
-	cameraz = z;
-	cameraspeed = speed;
-	verticalvelocity = 0.0;
-	camerayaw = yaw;
-	camerapitch = pitch;
-	camerarotationspeed = rotspeed;
-}
+Camera::Camera(double x, double y, double z, double speed, double yaw, double pitch, double rotspeed) :
+	camerax(x), cameray(y), cameraz(z), cameraspeed(speed),
+	camerayaw(yaw), camerapitch(pitch), camerarotationspeed(rotspeed),
+	verticalvelocity(0.0) {}
 
 void Camera::movement(GLFWwindow* window, double deltaTime, const vector<AABB>& obstacles)
 {
@@ -39,9 +32,9 @@ void Camera::movement(GLFWwindow* window, double deltaTime, const vector<AABB>& 
 	{
 		camerapitch += camerarotationspeed * deltaTime;
 
-		if (camerapitch >= 60.0)
+		if (camerapitch >= 75.0)
 		{
-			camerapitch = 60.0;
+			camerapitch = 75.0;
 		}
 	}
 
@@ -51,7 +44,7 @@ void Camera::movement(GLFWwindow* window, double deltaTime, const vector<AABB>& 
 	double lateralx = sin((camerayaw + 90.0) * (pi / 180.0));
 	double lateralz = -cos((camerayaw + 90.0) * (pi / 180.0));
 
-	Vector2 move{0.0, 0.0};
+	Vector2 move{0.0, 0.0}; 
 
 	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
 	{
@@ -77,7 +70,7 @@ void Camera::movement(GLFWwindow* window, double deltaTime, const vector<AABB>& 
 		move.z -= forwardz;
 	}
 
-	move.normalize();
+	move.normalize2();
 
 	double oldx = camerax;
 	double oldz = cameraz;
@@ -144,8 +137,8 @@ AABB Camera::getBounds() const
 {
 	AABB bounds
 	{
-		{camerax - 0.5, cameraz - 0.5},
-		{camerax + 0.5, cameraz + 0.5}
+		Vector3(camerax - 1.0, cameray - 10.0, cameraz - 1.0),
+		Vector3(camerax + 1.0, cameray + 2.0, cameraz + 1.0)
 	};
 
 	return bounds;
@@ -162,18 +155,38 @@ Vector2 Camera::getPos() const
 	return {camerax, cameraz};
 }
 
-void Camera::jump(GLFWwindow* window)
+void Camera::jump(GLFWwindow* window,const vector<AABB>& obstacles, double jumppower)
 {
-	const double jumpheight = 10.0;
+	const double err = 0.001;
+	const double jumpheight = jumppower;
+	double camerafoot = cameray - 10.0;
+	bool isGrounded = abs(camerafoot - (-15.0)) < err;
 
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && cameray <= -5.0)
+	AABB cameraBounds = getBounds();
+
+	for (const AABB& obstacle : obstacles)
+	{
+		bool overlapx = cameraBounds.min.x <= obstacle.max.x && cameraBounds.max.x >= obstacle.min.x;
+
+		bool overlapz = cameraBounds.min.z <= obstacle.max.z && cameraBounds.max.z >= obstacle.min.z;
+
+		if (verticalvelocity == 0.0 && cameray - 10.0 >= obstacle.max.y && cameray - 10.0 <= obstacle.max.y && overlapx && overlapz)
+		{
+			isGrounded = true;
+			break;
+		}
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && verticalvelocity == 0.0 && isGrounded)
 	{
 		verticalvelocity = jumpheight;
 	}
 }
 
-void Camera::applyGravity(double deltaTime)
+void Camera::applyGravity(double deltaTime, const vector<AABB>& obstacles)
 {
+	double oldy = cameray;
+	
 	verticalvelocity -= 9.81 * deltaTime;
 	cameray += verticalvelocity * deltaTime;
 
@@ -181,5 +194,21 @@ void Camera::applyGravity(double deltaTime)
 	{
 		cameray = -5.0;
 		verticalvelocity = 0.0;
+	}
+
+	for (const AABB& obstacle : obstacles)
+	{
+		AABB cameraBounds = getBounds();
+
+		bool overlapx = cameraBounds.min.x <= obstacle.max.x && cameraBounds.max.x >= obstacle.min.x;
+
+		bool overlapz = cameraBounds.min.z <= obstacle.max.z && cameraBounds.max.z >= obstacle.min.z;
+
+		if (verticalvelocity < 0.0 && oldy - 10.0 >= obstacle.max.y && cameray - 10.0 <= obstacle.max.y && overlapx && overlapz)
+		{
+			cameray = obstacle.max.y + 10.0;
+			verticalvelocity = 0.0;
+			break;
+		}
 	}
 }

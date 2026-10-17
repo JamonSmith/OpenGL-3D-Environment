@@ -3,13 +3,8 @@
 extern int verticalBound;
 extern int horizontalBound;
 
-Player::Player(double x, double y, double s, double rad)
-{
-	posX = x;
-	posY = y;
-	speed = s;
-	radius = rad;
-}
+Player::Player(double x, double y, double s, double rad) :
+	posX(x), posY(y), speed(s), radius(rad) {}
 
 void Player::processInput(GLFWwindow* window)
 {
