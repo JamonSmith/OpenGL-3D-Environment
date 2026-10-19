@@ -27,6 +27,8 @@ private:
 
 	double camerarotationspeed;
 
+	double crouchoffset = 0.0;
+	double cameraheight = 10.0 - crouchoffset;
 
 public:
 
@@ -41,5 +43,6 @@ public:
 	Vector2 getPos() const;
 
 	void jump(GLFWwindow* window, const vector<AABB>& obstacles, double jumppower);
+	void crouch(GLFWwindow* window, const vector<AABB>& obstacles, double crouchheight);
 	void applyGravity(double deltaTime, const vector<AABB>& obstacles);
 };

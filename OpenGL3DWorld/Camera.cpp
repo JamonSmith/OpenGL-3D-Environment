@@ -75,7 +75,19 @@ void Camera::movement(GLFWwindow* window, double deltaTime, const vector<AABB>& 
 	double oldx = camerax;
 	double oldz = cameraz;
 
-	camerax += move.x * cameraspeed * deltaTime;
+	double movespeed = cameraspeed;
+
+	if (glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS)
+	{
+		movespeed *= 2.0;
+	}
+
+	if (crouchoffset < 0.0)
+	{
+		movespeed *= 0.5;
+	}
+
+	camerax += move.x * movespeed * deltaTime;
 
 	for (const AABB& obstacle : obstacles)
 	{
@@ -86,7 +98,7 @@ void Camera::movement(GLFWwindow* window, double deltaTime, const vector<AABB>& 
 		}
 	}
 
-	cameraz += move.z * cameraspeed * deltaTime;
+	cameraz += move.z * movespeed * deltaTime;
 
 	for (const AABB& obstacle : obstacles)
 	{
@@ -107,7 +119,7 @@ void Camera::applyView()
 	
 	glRotatef(camerapitch, 1.0, 0.0, 0.0);
 	glRotatef(camerayaw, 0.0, 1.0, 0.0);
-	glTranslatef(-camerax, -cameray, -cameraz);
+	glTranslatef(-camerax, -(cameray + crouchoffset), -cameraz);
 }
 
 void Camera::boundsCheck(double xbound, double zbound)
@@ -138,7 +150,7 @@ AABB Camera::getBounds() const
 	AABB bounds
 	{
 		Vector3(camerax - 1.0, cameray - 10.0, cameraz - 1.0),
-		Vector3(camerax + 1.0, cameray + 2.0, cameraz + 1.0)
+		Vector3(camerax + 1.0, cameray + crouchoffset + 1.0, cameraz + 1.0)
 	};
 
 	return bounds;
@@ -159,7 +171,7 @@ void Camera::jump(GLFWwindow* window,const vector<AABB>& obstacles, double jumpp
 {
 	const double err = 0.001;
 	const double jumpheight = jumppower;
-	double camerafoot = cameray - 10.0;
+	double camerafoot = cameray - cameraheight;
 	bool isGrounded = abs(camerafoot - (-15.0)) < err;
 
 	AABB cameraBounds = getBounds();
@@ -170,17 +182,49 @@ void Camera::jump(GLFWwindow* window,const vector<AABB>& obstacles, double jumpp
 
 		bool overlapz = cameraBounds.min.z <= obstacle.max.z && cameraBounds.max.z >= obstacle.min.z;
 
-		if (verticalvelocity == 0.0 && cameray - 10.0 >= obstacle.max.y && cameray - 10.0 <= obstacle.max.y && overlapx && overlapz)
+		if (verticalvelocity == 0.0 && abs(camerafoot - obstacle.max.y) < err && overlapx && overlapz)
 		{
 			isGrounded = true;
 			break;
 		}
 	}
 
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && verticalvelocity == 0.0 && isGrounded)
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && crouchoffset == 0.0 && verticalvelocity == 0.0 && isGrounded)
 	{
 		verticalvelocity = jumpheight;
 	}
+}
+
+void Camera::crouch(GLFWwindow* window, const vector<AABB>& obstacles, double crouchheight)
+{
+	AABB standingBounds
+	{
+		Vector3(camerax - 1.0, cameray - 10.0, cameraz - 1.0),
+		Vector3(camerax + 1.0, cameray + 1.0, cameraz + 1.0)
+	};
+	
+	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+	{
+		crouchoffset = -crouchheight;
+	}
+	else
+	{
+		bool canStand = true;
+
+		for (const AABB& obstacle : obstacles)
+		{
+			if (standingBounds.intersects(obstacle))
+			{
+				canStand = false;
+				break;
+			}
+		}
+
+		if (canStand)
+		{
+			crouchoffset = 0.0;
+		}
+	}	
 }
 
 void Camera::applyGravity(double deltaTime, const vector<AABB>& obstacles)
